@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { motion, useAnimationFrame } from 'framer-motion';
 import { Case } from '../data/cases';
 import { Game } from '../data/games';
 
@@ -8,25 +8,32 @@ interface OpeningAnimationProps {
   onComplete: (result: { game: Game; key: string }) => void;
 }
 
-type AnimationPhase = 'fast' | 'slow' | 'stop' | 'shake' | 'flash' | 'result';
+// Определяем редкость на основе цены игры (для цвета свечения)
+const getRarityColor = (price: number): string => {
+  if (price >= 2000) return '#ffaa00'; // золотой
+  if (price >= 1000) return '#ff5500'; // оранжевый
+  if (price >= 500) return '#aa00ff';  // фиолетовый
+  if (price >= 200) return '#0055ff';  // синий
+  return '#ffffff';                     // обычный
+};
 
 const OpeningAnimation: React.FC<OpeningAnimationProps> = ({ caseData, onComplete }) => {
-  const [phase, setPhase] = useState<AnimationPhase>('fast');
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
-  const intervalRef = useRef<NodeJS.Timeout>();
-
-  // Генерация последовательности для прокрутки (с весами)
   const games = caseData.games;
-  const totalGames = games.length;
 
-  // Создаем взвешенную последовательность (дорогие игры реже)
-  const weightedSequence = useRef<Game[]>([]);
-  if (weightedSequence.current.length === 0) {
+  // Состояния
+  const [phase, setPhase] = useState<'spinning' | 'slowdown' | 'stop' | 'reveal'>('spinning');
+  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+  const [scrollOffset, setScrollOffset] = useState(0);
+  const [scrollSpeed, setScrollSpeed] = useState(15); // пикселей за кадр
+  const itemsRef = useRef<HTMLDivElement>(null);
+
+  // Взвешенная последовательность для прокрутки
+  const weightedSequence = useMemo(() => {
+    if (!games.length) return [];
     const maxPrice = Math.max(...games.map(g => g.price_rub));
     const weights = games.map(g => Math.pow(maxPrice / (g.price_rub || 1), 2));
     const totalWeight = weights.reduce((a, b) => a + b, 0);
-    const length = 200; // длина последовательности
+    const length = 200;
     const seq: Game[] = [];
     for (let i = 0; i < length; i++) {
       const rand = Math.random() * totalWeight;
@@ -39,68 +46,58 @@ const OpeningAnimation: React.FC<OpeningAnimationProps> = ({ caseData, onComplet
         }
       }
     }
-    weightedSequence.current = seq;
-  }
+    return seq;
+  }, [games]);
 
-  // Эффект для управления фазами
+  // Выбор выигрышной игры (происходит заранее)
+  const winningGame = useMemo(() => {
+    if (!games.length) return null;
+    const maxPrice = Math.max(...games.map(g => g.price_rub));
+    const weights = games.map(g => Math.pow(maxPrice / (g.price_rub || 1), 2));
+    const totalWeight = weights.reduce((a, b) => a + b, 0);
+    const rand = Math.random() * totalWeight;
+    let acc = 0;
+    for (let i = 0; i < games.length; i++) {
+      acc += weights[i];
+      if (rand < acc) return games[i];
+    }
+    return games[0];
+  }, [games]);
+
+  // Управление фазами
   useEffect(() => {
-    if (phase === 'fast') {
-      // Быстрая прокрутка (20 мс)
-      intervalRef.current = setInterval(() => {
-        setCurrentIndex(prev => (prev + 1) % weightedSequence.current.length);
-      }, 20);
-
-      // Через 1.5 сек переходим к замедлению
-      const timer = setTimeout(() => setPhase('slow'), 1500);
+    if (phase === 'spinning') {
+      const timer = setTimeout(() => setPhase('slowdown'), 3000);
       return () => clearTimeout(timer);
     }
+    if (phase === 'slowdown') {
+      // Замедление будет в useAnimationFrame
+    }
+    if (phase === 'stop') {
+      setSelectedGame(winningGame);
+      const timer = setTimeout(() => setPhase('reveal'), 500);
+      return () => clearTimeout(timer);
+    }
+    if (phase === 'reveal') {
+      const key = generateFakeKey();
+      // Небольшая задержка перед вызовом onComplete, чтобы анимация показа завершилась
+      const timer = setTimeout(() => onComplete({ game: winningGame!, key }), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [phase, winningGame]);
 
-    if (phase === 'slow') {
-      // Замедление: постепенно увеличиваем интервал
-      let speed = 30;
-      const slowInterval = setInterval(() => {
-        setCurrentIndex(prev => (prev + 1) % weightedSequence.current.length);
-        speed += 10;
-        if (speed > 150) {
-          clearInterval(slowInterval);
+  // Анимация прокрутки с замедлением
+  useAnimationFrame(() => {
+    if (phase === 'spinning' || phase === 'slowdown') {
+      if (phase === 'slowdown') {
+        setScrollSpeed(prev => Math.max(0, prev - 0.2)); // плавное замедление
+        if (scrollSpeed <= 0.1) {
           setPhase('stop');
         }
-      }, speed);
-      return () => clearInterval(slowInterval);
+      }
+      setScrollOffset(prev => (prev + scrollSpeed) % (weightedSequence.length * 120));
     }
-
-    if (phase === 'stop') {
-      // Выбираем случайную игру (выигрыш)
-      const randomIndex = Math.floor(Math.random() * games.length);
-      setSelectedGame(games[randomIndex]);
-
-      // Небольшая пауза, затем тряска
-      const timer = setTimeout(() => setPhase('shake'), 300);
-      return () => clearTimeout(timer);
-    }
-
-    if (phase === 'shake') {
-      // Тряска длится 0.5 сек, затем вспышка
-      const timer = setTimeout(() => setPhase('flash'), 500);
-      return () => clearTimeout(timer);
-    }
-
-    if (phase === 'flash') {
-      // Вспышка 0.8 сек, затем результат
-      const timer = setTimeout(() => setPhase('result'), 800);
-      return () => clearTimeout(timer);
-    }
-
-    if (phase === 'result') {
-      // Показываем результат и вызываем onComplete
-      const key = generateFakeKey(); // позже заменить на реальный ключ
-      onComplete({ game: selectedGame!, key });
-    }
-
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [phase, games, onComplete]);
+  });
 
   const generateFakeKey = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -108,91 +105,48 @@ const OpeningAnimation: React.FC<OpeningAnimationProps> = ({ caseData, onComplet
     return `${segment()}-${segment()}-${segment()}-${segment()}-${segment()}`;
   };
 
-  // Эффекты для тряски и вспышки
-  const shakeVariants = {
-    shake: {
-      x: [0, -10, 10, -10, 10, 0],
-      transition: { duration: 0.5, repeat: 0 }
-    }
-  };
-
-  const flashVariants = {
-    flash: {
-      opacity: [0, 1, 0],
-      transition: { duration: 0.8 }
-    }
-  };
-
   return (
-    <motion.div
-      className="opening-container"
-      animate={phase === 'shake' ? 'shake' : undefined}
-      variants={shakeVariants}
-      style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: '#000', zIndex: 2000 }}
-    >
-      {phase !== 'result' ? (
-        <>
-          {/* Прокрутка */}
-          <div className="scroll-window">
-            <motion.div
-              className="scroll-content"
-              animate={{ x: -currentIndex * 120 }}
-              transition={{ duration: 0.02, ease: 'linear' }}
-            >
-              {weightedSequence.current.map((game, idx) => (
-                <div key={idx} className="scroll-item">
-                  <img src={game.bannerUrl} alt={game.name} />
-                  <span>{game.name.slice(0, 10)}...</span>
-                </div>
-              ))}
-            </motion.div>
-            <div className="scroll-marker" />
-          </div>
+    <div className="opening-animation-container">
+      {/* Прокрутка */}
+      <div className="spinner-wrapper">
+        <div className="spinner-viewport">
+          <motion.div
+            ref={itemsRef}
+            className="spinner-track"
+            animate={{ x: -scrollOffset }}
+            transition={{ type: 'tween', ease: 'linear', duration: 0.016 }} // синхронизация с requestAnimationFrame
+          >
+            {weightedSequence.map((game, idx) => (
+              <div key={idx} className="spinner-item">
+                <img src={game.bannerUrl} alt={game.name} />
+                <span>{game.name.slice(0, 10)}…</span>
+              </div>
+            ))}
+          </motion.div>
+          <div className="spinner-marker" />
+        </div>
+      </div>
 
-          {/* Вспышка */}
-          {phase === 'flash' && (
-            <motion.div
-              className="flash-overlay"
-              variants={flashVariants}
-              animate="flash"
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                background: 'white',
-                zIndex: 10,
-                pointerEvents: 'none'
-              }}
-            />
-          )}
-        </>
-      ) : (
-        // Результат
+      {/* Фаза показа результата */}
+      {phase === 'reveal' && selectedGame && (
         <motion.div
-          className="result-container"
+          className="reveal-container"
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: '100%',
-            background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(0,0,0,1) 100%)'
-          }}
+          transition={{ duration: 0.5, type: 'spring', damping: 15 }}
         >
-          <img src={selectedGame?.bannerUrl} alt={selectedGame?.name} style={{ width: '300px', borderRadius: '20px', marginBottom: '20px' }} />
-          <h2 style={{ color: '#ffd700', fontSize: '2rem' }}>{selectedGame?.name}</h2>
-          <p style={{ fontFamily: 'monospace', fontSize: '1.5rem', background: '#333', padding: '10px', borderRadius: '10px', marginTop: '20px' }}>
-            {generateFakeKey()}
-          </p>
-          <p style={{ marginTop: '20px', color: '#aaa' }}>Ключ активируйте в Steam</p>
+          <motion.div
+            className="reveal-glow"
+            style={{ background: `radial-gradient(circle, ${getRarityColor(selectedGame.price_rub)} 0%, transparent 70%)` }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 0.8, 0] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+          <img src={selectedGame.bannerUrl} alt={selectedGame.name} className="reveal-image" />
+          <h2 className="reveal-title">{selectedGame.name}</h2>
         </motion.div>
       )}
-    </motion.div>
+    </div>
   );
 };
 

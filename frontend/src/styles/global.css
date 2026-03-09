@@ -1,8 +1,11 @@
+/* ========== GLOBAL.CSS ========== */
+/* Основные стили проекта FazerCases — золотая тема, анимации, адаптивность */
+
 :root {
   --bg-dark: #0a0c0f;
   --bg-card: #14181c;
-  --accent-gold: #ffd700;                 /* был --accent-green */
-  --accent-glow: 0 0 20px rgba(255, 215, 0, 0.5);  /* был зелёный */
+  --accent-gold: #ffd700;
+  --accent-glow: 0 0 20px rgba(255, 215, 0, 0.5);
   --text-primary: #ffffff;
   --text-secondary: #8a8f99;
   --nav-bg: #1a1e24;
@@ -14,29 +17,7 @@
   box-sizing: border-box;
 }
 
-.app-header {
-  background: linear-gradient(135deg, rgba(10,12,15,0.95), rgba(20,24,28,0.95));
-  backdrop-filter: blur(15px);
-  border-bottom: 2px solid transparent;
-  border-image: linear-gradient(90deg, transparent, #ffd700, transparent) 1;
-}
-
-.cases-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
-}
-
-/* Для страниц */
-.page {
-  padding: 20px;
-  background: rgba(0,0,0,0.2);
-  border-radius: 30px;
-  backdrop-filter: blur(5px);
-  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-}
-
+/* -------------------- Base -------------------- */
 body {
   background: linear-gradient(135deg, #0a0c0f, #1a1e2b, #0f1219);
   background-size: 400% 400%;
@@ -44,15 +25,9 @@ body {
   color: #fff;
   font-family: 'Inter', sans-serif;
   min-height: 100vh;
+  position: relative;
 }
 
-@keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-/* Дополнительный слой с бликами */
 body::before {
   content: '';
   position: fixed;
@@ -66,12 +41,29 @@ body::before {
   z-index: -1;
 }
 
-/* Анимированные линии */
-@keyframes move {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
+/* -------------------- Layout -------------------- */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding-bottom: 70px; /* отступ под нижнюю навигацию */
+}
+
+.main-content {
+  flex: 1;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* -------------------- Декоративные линии -------------------- */
 .glow-line {
   position: fixed;
   top: 0;
@@ -91,19 +83,24 @@ body::before {
   animation: move 8s infinite linear reverse;
 }
 
-.app-container {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  padding-bottom: 70px; /* отступ для нижней навигации */
+@keyframes move {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
-.main-content {
-  flex: 1;
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
+/* -------------------- Header -------------------- */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, rgba(10,12,15,0.95), rgba(20,24,28,0.95));
+  backdrop-filter: blur(15px);
+  border-bottom: 2px solid transparent;
+  border-image: linear-gradient(90deg, transparent, #ffd700, transparent) 1;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .header-left, .header-right {
@@ -111,14 +108,8 @@ body::before {
   display: flex;
   align-items: center;
 }
-
-.header-left {
-  justify-content: flex-start;
-}
-
-.header-right {
-  justify-content: flex-end;
-}
+.header-left { justify-content: flex-start; }
+.header-right { justify-content: flex-end; }
 
 .header-center {
   flex: 0 auto;
@@ -138,21 +129,6 @@ body::before {
   height: 40px;
   width: auto;
   object-fit: contain;
-}
-
-.nav-item {
-  position: relative;
-}
-
-.nav-active-indicator {
-  position: absolute;
-  bottom: -8px;
-  left: 10%;
-  width: 80%;
-  height: 3px;
-  background: linear-gradient(90deg, transparent, #ffd700, transparent);
-  border-radius: 3px;
-  box-shadow: 0 0 10px #ffd700;
 }
 
 .user-info {
@@ -199,57 +175,32 @@ body::before {
   box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
 }
 
-.balance-icon {
-  font-size: 18px;
-  line-height: 1;
-}
+.balance-icon { font-size: 18px; line-height: 1; }
+.balance-amount { font-size: 16px; font-weight: bold; color: #ffd700; }
 
-.balance-amount {
-  font-size: 16px;
+.top-up-button {
+  background: #ffd700;
+  border: none;
+  color: black;
   font-weight: bold;
-  color: #ffd700;
-}
-
-/* Адаптивность для мобильных */
-@media (max-width: 480px) {
-  .app-header {
-    padding: 8px 12px;
-  }
-
-  .logo {
-    font-size: 1.1rem;
-  }
-
-  .username {
-    display: none; /* на узких экранах скрываем ник, оставляем только аватар */
-  }
-
-  .avatar {
-    width: 34px;
-    height: 34px;
-    font-size: 16px;
-  }
-
-  .balance {
-    padding: 4px 10px;
-  }
-
-  .balance-icon {
-    font-size: 16px;
-  }
-
-  .balance-amount {
-    font-size: 14px;
-  }
-}
-
-.user-info {
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  margin-left: 8px;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  font-size: 18px;
+  transition: all 0.2s;
 }
 
-/* Нижняя навигация */
+.top-up-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 15px #ffd700;
+}
+
+/* -------------------- Bottom Navigation -------------------- */
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -260,25 +211,50 @@ body::before {
   display: flex;
   justify-content: space-around;
   padding: 8px 0 12px;
-  border-top: 1px solid rgba(43, 255, 136, 0.2);
+  border-top: 1px solid rgba(255, 215, 0, 0.2);
   z-index: 1000;
 }
 
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+  padding: 4px 12px;
+  border-radius: 20px;
+  position: relative;
+}
+
 .nav-item.active {
-  color: var(--accent-gold); 
+  color: var(--accent-gold);
   text-shadow: 0 0 10px var(--accent-gold);
 }
 
-.nav-icon {
-  font-size: 22px;
-  margin-bottom: 2px;
+.nav-icon { font-size: 22px; margin-bottom: 2px; }
+.nav-label { font-size: 11px; font-weight: 500; }
+
+.nav-active-indicator {
+  position: absolute;
+  bottom: -8px;
+  left: 10%;
+  width: 80%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #ffd700, transparent);
+  border-radius: 3px;
+  box-shadow: 0 0 10px #ffd700;
 }
 
-.nav-label {
-  font-size: 11px;
-  font-weight: 500;
+/* -------------------- Cards Grid -------------------- */
+.cases-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
 }
 
+/* -------------------- Case Card -------------------- */
 .case-card {
   position: relative;
   background: rgba(20, 24, 28, 0.7);
@@ -292,6 +268,12 @@ body::before {
   perspective: 800px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
   transition: all 0.3s;
+}
+
+.case-card:hover {
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 30px rgba(255,215,0,0.4);
+  transform: translateY(-2px);
 }
 
 .card-glow {
@@ -333,6 +315,9 @@ body::before {
   text-shadow: 0 0 10px rgba(255,215,0,0.5);
   z-index: 1;
   position: relative;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .price {
@@ -353,6 +338,8 @@ body::before {
   transition: all 0.2s;
 }
 
+.price-icon { font-size: 16px; }
+
 .game-tag {
   position: absolute;
   top: 10px;
@@ -367,34 +354,8 @@ body::before {
   z-index: 2;
 }
 
-.case-card:hover {
-  border-color: var(--accent-gold);
-  box-shadow: 0 0 30px rgba(255,215,0,0.4);
-  transform: translateY(-2px);
-}
-
-.case-card img {
-  width: 100%;
-  height: 120px;
-  object-fit: contain;
-  margin-bottom: 12px;
-  filter: drop-shadow(0 0 8px rgba(255,215,0,0.3));
-}
-
-.case-card h3 {
-  font-size: 16px;
-  margin-bottom: 6px;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.case-card .price-icon {
-  font-size: 16px;
-}
-
-.open-button, .claim-button, .add-button {
+/* -------------------- Buttons (общие) -------------------- */
+.open-button, .claim-button, .add-button, .bonus-button {
   background: linear-gradient(145deg, #ffd700, #ffb347);
   border: none;
   color: #000;
@@ -409,7 +370,7 @@ body::before {
   z-index: 1;
 }
 
-.open-button::before, .claim-button::before, .add-button::before {
+.open-button::before, .claim-button::before, .add-button::before, .bonus-button::before {
   content: '';
   position: absolute;
   top: 0;
@@ -421,19 +382,36 @@ body::before {
   z-index: -1;
 }
 
-.open-button:hover::before, .claim-button:hover::before, .add-button:hover::before {
+.open-button:hover::before, .claim-button:hover::before, .add-button:hover::before, .bonus-button:hover::before {
   left: 100%;
 }
 
-.open-button:hover, .claim-button:hover, .add-button:hover {
+.open-button:hover, .claim-button:hover, .add-button:hover, .bonus-button:hover {
   transform: scale(1.05);
   box-shadow: 0 0 30px #ffd700, 0 0 50px #ffd700;
 }
 
-.open-button:active, .claim-button:active, .add-button:active {
+.open-button:active, .claim-button:active, .add-button:active, .bonus-button:active {
   transform: scale(0.98);
 }
 
+.back-button {
+  background: transparent;
+  border: 1px solid var(--accent-gold);
+  color: var(--accent-gold);
+  padding: 12px 30px;
+  border-radius: 40px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.back-button:hover {
+  background: rgba(255,215,0,0.1);
+}
+
+/* -------------------- Case Detail Page -------------------- */
 .case-detail {
   min-height: 70vh;
   display: flex;
@@ -447,85 +425,92 @@ body::before {
   margin-bottom: 20px;
 }
 
-.opening-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.95);
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-}
-
-.opening-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: #0a0c0f;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-  overflow: hidden;
-}
-
-.scroll-window {
-  width: 90%;
-  max-width: 1000px;
-  height: 240px;
-  overflow: hidden;
-  position: relative;
-  border: 3px solid #ffd700;
-  border-radius: 24px;
+.key-display {
   background: #1a1e2b;
-  box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
-}
-
-.scroll-content {
-  display: flex;
-  gap: 15px;
   padding: 20px;
-  width: max-content;
-  will-change: transform;
+  border-radius: 16px;
+  font-family: monospace;
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+  border: 1px solid var(--accent-gold);
+  margin: 30px 0;
+  word-break: break-all;
 }
 
-.scroll-item {
-  width: 100px;
-  height: 160px;
-  background: #2a2f3f;
-  border-radius: 16px;
+.key-note {
+  color: #aaa;
+  margin-bottom: 20px;
+}
+
+/* -------------------- Opening Animation -------------------- */
+.opening-animation-container {
+  width: 100%;
+  min-height: 400px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 8px;
-  border: 1px solid rgba(255, 215, 0, 0.3);
-  box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+  padding: 20px;
+  background: rgba(0,0,0,0.5);
+  border-radius: 30px;
+  backdrop-filter: blur(5px);
+  box-shadow: 0 0 50px rgba(255,215,0,0.2);
+}
+
+.spinner-wrapper {
+  width: 100%;
+  max-width: 1000px;
+  margin: 20px auto;
+}
+
+.spinner-viewport {
+  width: 100%;
+  height: 160px;
+  overflow: hidden;
+  border: 2px solid #ffd700;
+  border-radius: 20px;
+  background: #1a1e2b;
+  box-shadow: 0 0 30px rgba(255,215,0,0.3);
+  position: relative;
+}
+
+.spinner-track {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  width: max-content;
+  will-change: transform;
+}
+
+.spinner-item {
+  width: 120px;
+  height: 120px;
+  background: #2a2f3f;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  border: 1px solid #ffd700;
   flex-shrink: 0;
 }
 
-.scroll-item img {
+.spinner-item img {
   width: 80px;
   height: 80px;
   object-fit: cover;
-  border-radius: 10px;
-  margin-bottom: 6px;
+  border-radius: 8px;
+  margin-bottom: 5px;
 }
 
-.scroll-item span {
+.spinner-item span {
   color: #fff;
-  font-size: 10px;
+  font-size: 12px;
   text-align: center;
-  opacity: 0.8;
 }
 
-.scroll-marker {
+.spinner-marker {
   position: absolute;
   top: 0;
   left: 50%;
@@ -538,12 +523,49 @@ body::before {
   z-index: 10;
 }
 
-.flash-overlay {
-  background: white;
-  mix-blend-mode: screen;
+.reveal-container {
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  padding: 30px;
+  border-radius: 40px;
+  background: rgba(20,24,28,0.8);
+  backdrop-filter: blur(10px);
+  border: 2px solid #ffd700;
+  box-shadow: 0 0 80px gold;
 }
 
-/* Daily Rewards */
+.reveal-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300px;
+  height: 300px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.reveal-image {
+  width: 200px;
+  border-radius: 20px;
+  margin-bottom: 20px;
+  border: 3px solid #ffd700;
+  box-shadow: 0 0 30px gold;
+  z-index: 1;
+}
+
+.reveal-title {
+  color: #ffd700;
+  font-size: 1.8rem;
+  text-shadow: 0 0 15px gold;
+  z-index: 1;
+}
+
+/* -------------------- Daily Rewards -------------------- */
 .daily-rewards {
   margin: 30px 0;
   text-align: center;
@@ -585,10 +607,18 @@ body::before {
   opacity: 0.5;
 }
 
-/* Admin pages */
-.admin-page {
-  padding: 20px;
+.day-number { font-size: 16px; font-weight: bold; }
+.check { font-size: 12px; margin-top: 2px; }
+.available { font-size: 12px; margin-top: 2px; color: #ffd700; }
+
+.claim-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
 }
+
+/* -------------------- Admin Pages -------------------- */
+.admin-page { padding: 20px; }
 
 .admin-layout {
   display: flex;
@@ -645,7 +675,6 @@ body::before {
   border-left: none;
 }
 
-/* Формы админки */
 .add-key-section {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 16px;
@@ -685,22 +714,6 @@ body::before {
   background: #1a1e2b;
 }
 
-.add-button {
-  background: #ffd700;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 25px;
-  color: #000;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.add-button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 15px #ffd700;
-}
-
 /* Таблицы */
 .keys-table-container, .stats-table, .audit-table-container {
   overflow-x: auto;
@@ -725,10 +738,7 @@ body::before {
   border-bottom: 1px solid rgba(255, 215, 0, 0.2);
 }
 
-.key-value {
-  font-family: monospace;
-  font-size: 0.9rem;
-}
+.key-value { font-family: monospace; font-size: 0.9rem; }
 
 .status-badge {
   padding: 4px 10px;
@@ -794,10 +804,7 @@ body::before {
   margin-bottom: 5px;
 }
 
-.stat-label {
-  color: #aaa;
-  font-size: 0.9rem;
-}
+.stat-label { color: #aaa; font-size: 0.9rem; }
 
 /* Аудит */
 .action-badge {
@@ -810,132 +817,31 @@ body::before {
   background: rgba(0, 255, 0, 0.2);
   color: #00ff00;
 }
-
 .action-badge.use_key {
   background: rgba(255, 165, 0, 0.2);
   color: orange;
 }
-
 .action-badge.delete_key {
   background: rgba(255, 0, 0, 0.2);
   color: #ff6b6b;
 }
-
 .action-badge.edit_key {
   background: rgba(0, 191, 255, 0.2);
   color: deepskyblue;
 }
-
 .action-badge.admin_login {
   background: rgba(255, 215, 0, 0.2);
   color: #ffd700;
 }
 
+/* Лоадер */
 .loading-spinner {
   text-align: center;
   padding: 40px;
   color: #aaa;
 }
 
-.day-number {
-  font-size: 16px;
-  font-weight: bold;
-}
-
-.check {
-  font-size: 12px;
-  margin-top: 2px;
-}
-
-.available {
-  font-size: 12px;
-  margin-top: 2px;
-  color: #ffd700;
-}
-
-.claim-button {
-  background: linear-gradient(145deg, #ffd700, #ffb347);
-  border: none;
-  color: black;
-  font-weight: bold;
-  padding: 12px 30px;
-  border-radius: 40px;
-  margin-top: 20px;
-  cursor: pointer;
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-  transition: all 0.2s;
-}
-
-.claim-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-.claim-button:hover:not(:disabled) {
-  transform: scale(1.05);
-  box-shadow: 0 0 30px #ffd700;
-}
-
-/* Top-up button in header */
-.top-up-button {
-  background: #ffd700;
-  border: none;
-  color: black;
-  font-weight: bold;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  margin-left: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  transition: all 0.2s;
-}
-
-.top-up-button:hover {
-  transform: scale(1.1);
-  box-shadow: 0 0 15px #ffd700;
-}
-
-.opening-glow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(circle, rgba(255, 215, 0, 0.4) 0%, transparent 70%);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  animation: pulse 1.2s infinite alternate;
-}
-
-@keyframes pulse {
-  from { opacity: 0.3; transform: translate(-50%, -50%) scale(0.8); }
-  to { opacity: 0.8; transform: translate(-50%, -50%) scale(1.2); }
-}
-
-.key-display {
-  background: #1a1e2b;
-  padding: 20px;
-  border-radius: 16px;
-  font-family: monospace;
-  font-size: 1.2rem;
-  letter-spacing: 2px;
-  border: 1px solid var(--accent-gold);
-  margin: 30px 0;
-  word-break: break-all;
-}
-
-.key-note {
-  color: #aaa;
-  margin-bottom: 20px;
-}
-
-/* Модальное окно */
+/* -------------------- Modal -------------------- */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -1045,57 +951,7 @@ body::before {
   margin-top: 20px;
 }
 
-.back-button, .open-button {
-  padding: 12px 30px;
-  border-radius: 40px;
-  font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: none;
-}
-
-.back-button {
-  background: transparent;
-  border: 1px solid var(--accent-gold);
-  color: var(--accent-gold);
-}
-
-.back-button:hover {
-  background: rgba(255,215,0,0.1);
-}
-
-.open-button {
-  background: linear-gradient(145deg, #ffd700, #ffb347);
-  color: #000;
-  box-shadow: 0 0 20px rgba(255,215,0,0.5);
-}
-
-.open-button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 30px #ffd700;
-}
-
-/* Кнопка бонуса на главной */
-.bonus-button {
-  background: linear-gradient(135deg, #ffd700, #ffb347);
-  border: none;
-  color: black;
-  font-weight: bold;
-  padding: 12px 30px;
-  border-radius: 40px;
-  margin-top: 20px;
-  cursor: pointer;
-  box-shadow: 0 0 20px #ffd700;
-  transition: all 0.2s;
-}
-
-.bonus-button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 30px var(--accent-green);
-}
-
-/* Страницы-заглушки */
+/* -------------------- Pages (общие) -------------------- */
 .page {
   padding: 20px 0;
 }
@@ -1104,4 +960,48 @@ h1 {
   font-size: 24px;
   margin-bottom: 20px;
   color: var(--text-primary);
+}
+
+/* -------------------- Адаптивность -------------------- */
+@media (max-width: 600px) {
+  .app-header {
+    padding: 8px 12px;
+  }
+
+  .logo {
+    font-size: 1.1rem;
+  }
+
+  .username {
+    display: none;
+  }
+
+  .avatar {
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+  }
+
+  .balance {
+    padding: 4px 10px;
+  }
+
+  .balance-icon { font-size: 16px; }
+  .balance-amount { font-size: 14px; }
+
+  .spinner-item {
+    width: 100px;
+    height: 100px;
+  }
+  .spinner-item img {
+    width: 60px;
+    height: 60px;
+  }
+
+  .reveal-image {
+    width: 150px;
+  }
+  .reveal-title {
+    font-size: 1.4rem;
+  }
 }

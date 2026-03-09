@@ -1,37 +1,41 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { casesData } from '../data/cases';          // проверьте путь (возможно, './data/cases')
-import { Game } from '../data/games';                // нужен импорт типа Game
+import { casesData } from '../data/cases';
+import { Game } from '../data/games';
 import OpeningAnimation from '../components/OpeningAnimation';
 
 const CaseDetail: React.FC = () => {
-  const { id } = useParams<{ id: string }>();       // правильный синтаксис
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const caseItem = casesData.find((c) => c.id === Number(id));
   const [opening, setOpening] = useState(false);
-  const [result, setResult] = useState<{ gameName: string; key: string } | null>(null);  // типизация
+  const [result, setResult] = useState<{ game: Game; key: string } | null>(null);
 
   if (!caseItem) return <div>Кейс не найден</div>;
 
   const startOpening = () => setOpening(true);
 
-  const handleAnimationComplete = (res: { game: Game; key: string }) => {
-    setResult({
-      gameName: res.game.name,
-      key: res.key,
-    });
+  const handleComplete = (res: { game: Game; key: string }) => {
+    setResult(res);
     setOpening(false);
   };
 
   if (result) {
     return (
-      <div className="case-result">
+      <motion.div
+        className="case-result"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <h1>🎉 Вы выиграли!</h1>
-        <h2>{result.gameName}</h2>
+        <h2>{result.game.name}</h2>
+        <img src={result.game.bannerUrl} alt={result.game.name} style={{ width: '200px', borderRadius: '10px' }} />
         <div className="key-display">{result.key}</div>
-        <button onClick={() => navigate('/market')}>В маркет</button>
-      </div>
+        <p className="key-note">Ключ активируйте в Steam</p>
+        <button onClick={() => navigate('/market')} className="back-button">В маркет</button>
+      </motion.div>
     );
   }
 
@@ -39,13 +43,21 @@ const CaseDetail: React.FC = () => {
     <div className="case-detail">
       <AnimatePresence mode="wait">
         {opening ? (
-          <OpeningAnimation caseData={caseItem} onComplete={handleAnimationComplete} />
+          <motion.div
+            key="animation"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{ width: '100%' }}
+          >
+            <OpeningAnimation caseData={caseItem} onComplete={handleComplete} />
+          </motion.div>
         ) : (
           <motion.div
             key="info"
-            initial={{ x: -50, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
             className="case-info"
           >
             <h1>{caseItem.name}</h1>
